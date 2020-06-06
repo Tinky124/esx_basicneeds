@@ -24,13 +24,7 @@ AddEventHandler('esx_basicneeds:healPlayer', function()
 end)
 AddEventHandler('esx:onPlayerDeath', function() IsDead = true end)
 AddEventHandler('esx:onPlayerSpawn', function(spawn)
-	if IsDead then
-		TriggerEvent('esx_basicneeds:resetStatus')
-	end
-
-	IsDead = false
-end)
-
+	if IsDead then TriggerEvent('esx_basicneeds:resetStatus') end IsDead = false end)
 AddEventHandler('esx_status:loaded', function(status)
 
 	TriggerEvent('esx_status:registerStatus', 'hunger', 1000000, '#CFAD0F', function(status)
@@ -81,7 +75,6 @@ AddEventHandler('esx_status:loaded', function(status)
 end)
 
 AddEventHandler('esx_basicneeds:isEating', function(cb) cb(IsAnimated) end)
-
 RegisterNetEvent('esx_basicneeds:onEat')
 AddEventHandler('esx_basicneeds:onEat', function(prop_name)
 	if not IsAnimated then

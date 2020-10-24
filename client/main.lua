@@ -1,6 +1,7 @@
 ESX          = nil
 local IsDead = false
 local IsAnimated = false
+local Keys = {  ["X"] = 73 }
 
 Citizen.CreateThread(function()
 	while ESX == nil do
@@ -35,6 +36,29 @@ AddEventHandler('esx:onPlayerSpawn', function(spawn)
 	end
 
 	IsDead = false
+end)
+
+Citizen.CreateThread(function()
+	local dict = "missminuteman_1ig_2"
+
+	RequestAnimDict(dict)
+	while not HasAnimDictLoaded(dict) do
+		Citizen.Wait(100)
+	end
+	local handsup = false
+
+	while true do
+		Citizen.Wait(10)
+		if IsControlJustPressed(1, Keys['X']) and GetLastInputMethod(2) and IsPedOnFoot(PlayerPedId()) then
+			if not handsup then
+				TaskPlayAnim(PlayerPedId(), dict, "handsup_enter", 8.0, 8.0, -1, 50, 0, false, false, false)
+				handsup = true
+			else
+				handsup = false
+				ClearPedTasks(PlayerPedId())
+			end
+		end
+	end
 end)
 
 AddEventHandler('esx_status:loaded', function(status)

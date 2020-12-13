@@ -1,14 +1,5 @@
-ESX          = nil
-local IsDead = false
-local IsAnimated = false
-local Keys = {  ["X"] = 73 }
-
-Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(0)
-	end
-end)
+ESX  = nil
+local IsDead, IsAnimated = false, false
 
 AddEventHandler('esx_basicneeds:resetStatus', function()
 	TriggerEvent('esx_status:set', 'hunger', 500000)
@@ -20,25 +11,19 @@ AddEventHandler('esx_basicneeds:healPlayer', function()
 	-- restore hunger & thirst
 	TriggerEvent('esx_status:set', 'hunger', 1000000)
 	TriggerEvent('esx_status:set', 'thirst', 1000000)
-
 	-- restore hp
 	local playerPed = PlayerPedId()
 	SetEntityHealth(playerPed, GetEntityMaxHealth(playerPed))
 end)
 
-AddEventHandler('esx:onPlayerDeath', function()
-	IsDead = true
-end)
-
+AddEventHandler('esx:onPlayerDeath', function() IsDead = true end)
 AddEventHandler('esx:onPlayerSpawn', function(spawn)
-	if IsDead then
-		TriggerEvent('esx_basicneeds:resetStatus')
-	end
-
+	if IsDead then TriggerEvent('esx_basicneeds:resetStatus') end
 	IsDead = false
 end)
 
 Citizen.CreateThread(function()
+    while ESX == nil do TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end) Wait(0) end
 	local dict = "missminuteman_1ig_2"
 
 	RequestAnimDict(dict)
@@ -48,21 +33,21 @@ Citizen.CreateThread(function()
 	local handsup = false
 
 	while true do
-		Citizen.Wait(10)
-		if IsControlJustPressed(1, Keys['X']) and GetLastInputMethod(2) and IsPedOnFoot(PlayerPedId()) then
+        Citizen.Wait(10)
+        local ig = PlayerPedId()
+		if IsControlJustPressed(1,73) and GetLastInputMethod(2) and IsPedOnFoot(ig) then
 			if not handsup then
-				TaskPlayAnim(PlayerPedId(), dict, "handsup_enter", 8.0, 8.0, -1, 50, 0, false, false, false)
+				TaskPlayAnim(ig, dict, "handsup_enter", 8.0, 8.0, -1, 50, 0, false, false, false)
 				handsup = true
 			else
 				handsup = false
-				ClearPedTasks(PlayerPedId())
+				ClearPedTasks(ig)
 			end
 		end
 	end
 end)
 
 AddEventHandler('esx_status:loaded', function(status)
-
 	TriggerEvent('esx_status:registerStatus', 'hunger', 1000000, '#CFAD0F', function(status)
 		return Config.Visible
 	end, function(status)
@@ -77,11 +62,10 @@ AddEventHandler('esx_status:loaded', function(status)
 
 	Citizen.CreateThread(function()
 		while true do
-			Citizen.Wait(1000)
-
+			Citizen.Wait(2000)
 			local playerPed  = PlayerPedId()
 			local prevHealth = GetEntityHealth(playerPed)
-			local health     = prevHealth
+			local health = prevHealth
 
 			TriggerEvent('esx_status:getStatus', 'hunger', function(status)
 				if status.val == 0 then
@@ -110,10 +94,7 @@ AddEventHandler('esx_status:loaded', function(status)
 	end)
 end)
 
-AddEventHandler('esx_basicneeds:isEating', function(cb)
-	cb(IsAnimated)
-end)
-
+AddEventHandler('esx_basicneeds:isEating', function(cb) cb(IsAnimated) end)
 RegisterNetEvent('esx_basicneeds:onEat')
 AddEventHandler('esx_basicneeds:onEat', function(prop_name)
 	if not IsAnimated then
@@ -129,7 +110,6 @@ AddEventHandler('esx_basicneeds:onEat', function(prop_name)
 
 			ESX.Streaming.RequestAnimDict('mp_player_inteat@burger', function()
 				TaskPlayAnim(playerPed, 'mp_player_inteat@burger', 'mp_player_int_eat_burger_fp', 8.0, -8, -1, 49, 0, 0, 0, 0)
-
 				Citizen.Wait(3000)
 				IsAnimated = false
 				ClearPedSecondaryTask(playerPed)
@@ -147,15 +127,15 @@ AddEventHandler('esx_basicneeds:onDrink', function(prop_name)
 		IsAnimated = true
 
 		Citizen.CreateThread(function()
-			local playerPed = PlayerPedId()
-			local x,y,z = table.unpack(GetEntityCoords(playerPed))
+            local playerPed = PlayerPedId()
+            local playercoords = GetEntityCoords(playerPed)
+			local x,y,z = table.unpack(playercoords)
 			local prop = CreateObject(GetHashKey(prop_name), x, y, z + 0.2, true, true, true)
 			local boneIndex = GetPedBoneIndex(playerPed, 18905)
 			AttachEntityToEntity(prop, playerPed, boneIndex, 0.12, 0.028, 0.001, 10.0, 175.0, 0.0, true, true, false, true, 1, true)
 
 			ESX.Streaming.RequestAnimDict('mp_player_intdrink', function()
-				TaskPlayAnim(playerPed, 'mp_player_intdrink', 'loop_bottle', 1.0, -1.0, 2000, 0, 1, true, true, true)
-
+				TaskPlayAnim(playerPed, 'mp_player_intdrink', 'loop_bottle', 8.0, -8.0, 2000, 49, 0, 0, 0, 0)
 				Citizen.Wait(3000)
 				IsAnimated = false
 				ClearPedSecondaryTask(playerPed)
@@ -165,3 +145,4 @@ AddEventHandler('esx_basicneeds:onDrink', function(prop_name)
 
 	end
 end)
+
